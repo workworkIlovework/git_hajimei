@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!--&lt;!&ndash;声明AccountDao(一定是类)-->
+    <!--class:类的全路径  包名.类名-->
+    <!--&ndash;&gt;-->
+    <!--<bean name="dao"  class="com.wojia.Mapper.AccountDao"></bean>-->
+
+    <!--&lt;!&ndash;声明AccountService-->
+    <!--  为属性dao赋值   注入-->
+    <!--&ndash;&gt;-->
+    <!--<bean  name="service"  class="com.wojia.service.AccountService">-->
+    <!--    &lt;!&ndash;第一个dao:属性名   第二个dao :标签的name(id)&ndash;&gt;-->
+    <!--    <property name="dao" ref="dao"></property>-->
+    <!-- </bean>-->
+    <!--    打开注解扫描模式-->
+    <context:component-scan base-package="com.wojia"></context:component-scan>
+
+    <!--引入外部properties-->
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+    <!--  1    配置数据源-->
+    <bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"></property>
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="user" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+    <!--  2  让Spring管理SqlSession-->
+    <!--    1datasours-->
+    <!--    2别名-->
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="c3p0"></property>
+        <property name="typeAliasesPackage" value="com.wojia.pojo"></property>
+        <!--分页插件-->
+        <!--配置pagehelper插件-->
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <value>
+                            helperDialect=mysql
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <!--  3  扫描mapper包-->
+    <bean id="mapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.wojia.mapper"></property>
+    </bean>
+    <!--  4  事物管理  -->
+    <bean id="dataSourceTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="c3p0"></property>
+    </bean>
+    <!--    5开启注解事务的支持-->
+    <tx:annotation-driven transaction-manager="dataSourceTransactionManager"></tx:annotation-driven>
+
+    <!--定义文件上传解析器-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--默认编码-->
+        <property name="defaultEncoding" value="UTF-8"/>
+        <!--最大上传容量100MB,10*1024*1024-->
+        <property name="maxUploadSize" value="104857600"/>
+        <!--缓存-->
+        <property name="maxInMemorySize" value="4096"/>
+    </bean>
+</beans>
+
+
+        <!--    <bean id="queryRunner" class="org.apache.commons.dbutils.QueryRunner">-->
+        <!--        <constructor-arg name="ds" ref="c3p0"></constructor-arg>-->
+        <!--    </bean>-->
+
+        <!--<bean id="dao" class="com.wojia.dao.ISpringDao">-->
+        <!--    <property name="qr" ref="queryrunner"></property>-->
+        <!--</bean>-->
+        <!--<bean name="service" class="com.wojia.service.ISpringService">-->
+        <!--    <property name="dao" ref="dao1"></property>-->
+        <!--</bean>-->
+
+
